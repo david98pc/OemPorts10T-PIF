@@ -1,0 +1,39 @@
+name: Framework Patcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      framework_jar_url:
+        description: 'Direct download URL for framework.jar'
+        required: true
+        type: string
+
+jobs:
+  patch-framework:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y openjdk-17-jre android-sdk-libsparse-utils android-sdk-platform-tools zip unzip zipalign
+        
+    - name: Download framework.jar
+      run: |
+        cd framework_patcher
+        wget -O framework.jar "${{ github.event.inputs.framework_jar_url }}"
+        
+    - name: Run patcher
+      run: |
+        cd framework_patcher
+        chmod +x patchframework.sh
+        ./patchframework.sh
+        
+    - name: Upload patched framework
+      uses: actions/upload-artifact@v4
+      with:
+        name: patched-framework
+        path: framework_patcher/framework.jar
+        
